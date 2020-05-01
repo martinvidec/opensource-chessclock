@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
@@ -20,17 +22,45 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
+  Stopwatch _stopwatchPlayer1 = Stopwatch();
+  Stopwatch _stopwatchPlayer2 = Stopwatch();
+  bool _gameStarted = false;
+  Duration _duration = Duration(minutes: 5);
+  
+  void _player1TimerClicked(){
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      if(_gameStarted && _stopwatchPlayer1.isRunning && !_stopwatchPlayer2.isRunning){
+        _stopwatchPlayer1.stop();
+        _stopwatchPlayer2.start();
+      } else if(!_gameStarted){
+        _stopwatchPlayer1.start();
+        _gameStarted = true;
+      }
     });
+  }
+
+  void _player2TimerClicked(){
+    setState(() {
+      if(_gameStarted && _stopwatchPlayer2.isRunning && !_stopwatchPlayer1.isRunning){
+        _stopwatchPlayer2.stop();
+        _stopwatchPlayer1.start();
+      } else if(!_gameStarted){
+        _stopwatchPlayer2.start();
+        _gameStarted = true;
+      }
+    });
+  }
+
+  // TODO check end game condition
+  void _checkEndGameCondition(){
+    // End condition
+    if(_stopwatchPlayer1.elapsed.compareTo(_duration) > 0) {
+      // player 1 lost
+      // end game
+    } else if (_stopwatchPlayer2.elapsed.compareTo(_duration) > 0) {
+      // player 2 lost
+      // end game
+    }
   }
 
   @override
@@ -67,21 +97,24 @@ class _MyHomePageState extends State<MyHomePage> {
           // horizontal).
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.display1,
-            ),
+            OutlineButton(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text('${_stopwatchPlayer2.elapsed.inSeconds}',
+                style: Theme.of(context).textTheme.display3,),
+              ),
+              onPressed: _player2TimerClicked,),
+            OutlineButton(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text('${_stopwatchPlayer1.elapsed.inSeconds}',
+                style: Theme.of(context).textTheme.display3,),
+              ),
+              onPressed: _player1TimerClicked,
+            )
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
