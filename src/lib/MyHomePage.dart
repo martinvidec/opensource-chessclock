@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
@@ -23,9 +22,32 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   Stopwatch _stopwatchPlayer1 = Stopwatch();
+  String _stopwatchPlayer1Text = "";
   Stopwatch _stopwatchPlayer2 = Stopwatch();
+  String _stopwatchPlayer2Text = "";
   bool _gameStarted = false;
-  Duration _duration = Duration(minutes: 5);
+  Duration _duration = Duration(seconds: 30);
+  Timer _everySecond;
+
+  @override
+  void initState(){
+    super.initState();
+    _everySecond = Timer.periodic(Duration(seconds: 1), (Timer t){
+      int _result = _checkEndGameCondition();
+      setState(() {
+        if(_result == 0){
+          _stopwatchPlayer1Text = _stopwatchPlayer1.elapsed.inSeconds.toString();
+          _stopwatchPlayer2Text = _stopwatchPlayer2.elapsed.inSeconds.toString();
+        } else if(_result == 1){
+          _stopwatchPlayer1Text = "YOU WON";
+          _stopwatchPlayer2Text = "YOU LOST";
+        } else if(_result == 2){
+          _stopwatchPlayer1Text = "YOU LOST";
+          _stopwatchPlayer2Text = "YOU WON";
+        }
+      });
+    });
+  }
   
   void _player1TimerClicked(){
     setState(() {
@@ -51,16 +73,22 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  // TODO check end game condition
-  void _checkEndGameCondition(){
+  // TODO doc
+  int _checkEndGameCondition(){
     // End condition
     if(_stopwatchPlayer1.elapsed.compareTo(_duration) > 0) {
-      // player 1 lost
-      // end game
+      _stopStopwatches();
+      return 2;
     } else if (_stopwatchPlayer2.elapsed.compareTo(_duration) > 0) {
-      // player 2 lost
-      // end game
+      _stopStopwatches();
+      return 1;
     }
+    return 0;
+  }
+
+  void _stopStopwatches() {
+    _stopwatchPlayer1.stop();
+    _stopwatchPlayer2.stop();
   }
 
   @override
@@ -97,17 +125,22 @@ class _MyHomePageState extends State<MyHomePage> {
           // horizontal).
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            OutlineButton(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text('${_stopwatchPlayer2.elapsed.inSeconds}',
-                style: Theme.of(context).textTheme.display3,),
+            Container(
+              child: RotatedBox(
+                quarterTurns: 2,
+                child: OutlineButton(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text('$_stopwatchPlayer2Text',
+                    style: Theme.of(context).textTheme.display3,),
+                  ),
+                  onPressed: _player2TimerClicked,),
               ),
-              onPressed: _player2TimerClicked,),
+            ),
             OutlineButton(
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: Text('${_stopwatchPlayer1.elapsed.inSeconds}',
+                child: Text('$_stopwatchPlayer1Text',
                 style: Theme.of(context).textTheme.display3,),
               ),
               onPressed: _player1TimerClicked,
