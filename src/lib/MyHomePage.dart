@@ -21,62 +21,93 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  static Duration _duration = Duration(seconds: 30);
+
   Stopwatch _stopwatchPlayer1 = Stopwatch();
-  String _stopwatchPlayer1Text = "";
+  String _stopwatchPlayer1Text = _formatDuration(_duration);
   Stopwatch _stopwatchPlayer2 = Stopwatch();
-  String _stopwatchPlayer2Text = "";
-  bool _gameStarted = false;
-  Duration _duration = Duration(seconds: 30);
-  Timer _everySecond;
+  String _stopwatchPlayer2Text = _formatDuration(_duration);
+  bool _gameRunning = false;
+  Timer _periodic;
+  String _elapsedTimeText = "00:00:00.000";
+  String _infoPlayer1Text = "";
+  String _infoPlayer2Text = "";
+  int _result = 0;
 
   @override
-  void initState(){
+  void initState() {
     super.initState();
-    _everySecond = Timer.periodic(Duration(seconds: 1), (Timer t){
-      int _result = _checkEndGameCondition();
-      setState(() {
-        if(_result == 0){
-          _stopwatchPlayer1Text = _stopwatchPlayer1.elapsed.inSeconds.toString();
-          _stopwatchPlayer2Text = _stopwatchPlayer2.elapsed.inSeconds.toString();
-        } else if(_result == 1){
-          _stopwatchPlayer1Text = "YOU WON";
-          _stopwatchPlayer2Text = "YOU LOST";
-        } else if(_result == 2){
-          _stopwatchPlayer1Text = "YOU LOST";
-          _stopwatchPlayer2Text = "YOU WON";
+    _periodic = Timer.periodic(Duration(milliseconds: 1), (Timer t) {
+      if (_gameRunning) {
+        _result = _checkEndGameCondition();
+        Duration elapsedPlayer1 = _stopwatchPlayer1.elapsed;
+        Duration elapsedPlayer2 = _stopwatchPlayer2.elapsed;
+
+        Duration remainingPlayer1 = _duration - elapsedPlayer1;
+        if(remainingPlayer1.isNegative) {
+          elapsedPlayer1 = elapsedPlayer1 + remainingPlayer1;
+          remainingPlayer1 = Duration.zero;
         }
-      });
-    });
-  }
-  
-  void _player1TimerClicked(){
-    setState(() {
-      if(_gameStarted && _stopwatchPlayer1.isRunning && !_stopwatchPlayer2.isRunning){
-        _stopwatchPlayer1.stop();
-        _stopwatchPlayer2.start();
-      } else if(!_gameStarted){
-        _stopwatchPlayer1.start();
-        _gameStarted = true;
+
+        Duration remainingPlayer2 = _duration - elapsedPlayer2;
+        if(remainingPlayer2.isNegative) {
+          elapsedPlayer2 = elapsedPlayer2 + remainingPlayer2;
+          remainingPlayer2 = Duration.zero;
+        }
+        
+        _elapsedTimeText = _formatDuration(elapsedPlayer1 + elapsedPlayer2);
+        _stopwatchPlayer1Text = _formatDuration(remainingPlayer1);
+        _stopwatchPlayer2Text = _formatDuration(remainingPlayer2);
+
+        setState(() {
+          if (_result == 1) {
+            _infoPlayer1Text = "YOU WON";
+            _infoPlayer2Text = "YOU LOST";
+          } else if (_result == 2) {
+            _infoPlayer1Text = "YOU LOST";
+            _infoPlayer2Text = "YOU WON";
+          }
+        });
       }
     });
   }
 
-  void _player2TimerClicked(){
+  void _player1TimerClicked() {
     setState(() {
-      if(_gameStarted && _stopwatchPlayer2.isRunning && !_stopwatchPlayer1.isRunning){
+      if (_gameRunning &&
+          _stopwatchPlayer1.isRunning &&
+          !_stopwatchPlayer2.isRunning) {
+        _stopwatchPlayer1.stop();
+        _stopwatchPlayer2.start();
+      } else if (!_gameRunning && _result == 0) {
+        _stopwatchPlayer1.start();
+        _gameRunning = true;
+      } else if (!_gameRunning && _result != 0){
+        _resetGame();
+      }
+    });
+  }
+
+  void _player2TimerClicked() {
+    setState(() {
+      if (_gameRunning &&
+          _stopwatchPlayer2.isRunning &&
+          !_stopwatchPlayer1.isRunning) {
         _stopwatchPlayer2.stop();
         _stopwatchPlayer1.start();
-      } else if(!_gameStarted){
+      } else if (!_gameRunning && _result == 0) {
         _stopwatchPlayer2.start();
-        _gameStarted = true;
+        _gameRunning = true;
+      } else if (!_gameRunning && _result != 0){
+        _resetGame();
       }
     });
   }
 
   // TODO doc
-  int _checkEndGameCondition(){
+  int _checkEndGameCondition() {
     // End condition
-    if(_stopwatchPlayer1.elapsed.compareTo(_duration) > 0) {
+    if (_stopwatchPlayer1.elapsed.compareTo(_duration) > 0) {
       _stopStopwatches();
       return 2;
     } else if (_stopwatchPlayer2.elapsed.compareTo(_duration) > 0) {
@@ -89,6 +120,28 @@ class _MyHomePageState extends State<MyHomePage> {
   void _stopStopwatches() {
     _stopwatchPlayer1.stop();
     _stopwatchPlayer2.stop();
+    _gameRunning = false;
+  }
+
+  void _resetGame(){
+    setState((){
+      _gameRunning = false;
+      _stopwatchPlayer1.reset();
+      _stopwatchPlayer2.reset();
+      _stopwatchPlayer1Text = _formatDuration(_duration);
+      _stopwatchPlayer2Text = _formatDuration(_duration);
+      _elapsedTimeText = "00:00:00.000";
+      _infoPlayer1Text = "";
+      _infoPlayer2Text = "";
+      _result = 0;
+    });
+  }
+
+  static String _formatDuration(Duration duration) {
+    return '${duration.inHours.toString().padLeft(2, "0")}:' +
+        '${duration.inMinutes.remainder(60).toString().padLeft(2, "0")}:' +
+        '${duration.inSeconds.remainder(60).toString().padLeft(2, "0")}:' +
+        '${duration.inMilliseconds.remainder(1000).toString().padLeft(3, "0")}';
   }
 
   @override
@@ -125,26 +178,58 @@ class _MyHomePageState extends State<MyHomePage> {
           // horizontal).
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            Spacer(),
             Container(
               child: RotatedBox(
                 quarterTurns: 2,
                 child: OutlineButton(
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: Text('$_stopwatchPlayer2Text',
-                    style: Theme.of(context).textTheme.display3,),
+                    child: Text(
+                      '$_stopwatchPlayer2Text',
+                      style: Theme.of(context).textTheme.display1,
+                    ),
                   ),
-                  onPressed: _player2TimerClicked,),
+                  onPressed: _player2TimerClicked,
+                ),
               ),
             ),
+            Spacer(),
+            RotatedBox(
+              quarterTurns: 2,
+              child: Text(
+                '$_infoPlayer2Text',
+                style: Theme.of(context).textTheme.display1,
+              ),
+            ),
+            RotatedBox(
+              quarterTurns: 2,
+              child: Text(
+                '$_elapsedTimeText',
+                style: Theme.of(context).textTheme.display2,
+              ),
+            ),
+            Spacer(),
+            Text(
+              '$_elapsedTimeText',
+              style: Theme.of(context).textTheme.display2,
+            ),
+            Text(
+              '$_infoPlayer1Text',
+              style: Theme.of(context).textTheme.display1,
+            ),
+            Spacer(),
             OutlineButton(
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: Text('$_stopwatchPlayer1Text',
-                style: Theme.of(context).textTheme.display3,),
+                child: Text(
+                  '$_stopwatchPlayer1Text',
+                  style: Theme.of(context).textTheme.display1,
+                ),
               ),
               onPressed: _player1TimerClicked,
-            )
+            ),
+            Spacer(),
           ],
         ),
       ),
