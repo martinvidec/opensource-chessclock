@@ -24,6 +24,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   static Duration _duration = Duration(seconds: 30);
+  static double _fps = 1 / 60;
 
   ChessGame _chessGame;
   Timer _timer;
@@ -49,21 +50,18 @@ class _MyHomePageState extends State<MyHomePage> {
     _infoPlayer1Text = "";
     _infoPlayer2Text = "";
   }
-  
+
   void _initTimer() {
-    _timer = Timer.periodic(Duration(milliseconds: 1), (Timer t) {
+    _timer = Timer.periodic(Duration(milliseconds: (_fps * 1000).floor()), (Timer t) {
       if (_chessGame.isRunning()) {
         _chessGame.checkGameOverCondition();
 
         GameStats gameStats = _chessGame.computeGameStats();
 
         _elapsedTimeText = _formatDuration(
-            gameStats.elapsedPlayer1 +
-                gameStats.elapsedPlayer2);
-        _stopwatchPlayer1Text =
-            _formatDuration(gameStats.remainingPlayer1);
-        _stopwatchPlayer2Text =
-            _formatDuration(gameStats.remainingPlayer2);
+            gameStats.elapsedPlayer1 + gameStats.elapsedPlayer2);
+        _stopwatchPlayer1Text = _formatDuration(gameStats.remainingPlayer1);
+        _stopwatchPlayer2Text = _formatDuration(gameStats.remainingPlayer2);
 
         setState(() {
           if (_chessGame.getResult() == 1) {
@@ -85,7 +83,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _player1TimerClicked() {
-    if(!_chessGame.isOver()) {
+    if (!_chessGame.isOver()) {
       _chessGame.makeTurn(1);
     } else {
       setState(() {
@@ -95,7 +93,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _player2TimerClicked() {
-    if(!_chessGame.isOver()) {
+    if (!_chessGame.isOver()) {
       _chessGame.makeTurn(2);
     } else {
       setState(() {
