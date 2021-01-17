@@ -9,23 +9,26 @@ import 'package:chessclock/MyApp.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:chessclock/main.dart';
-
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(MyApp());
+  group("Clock Tests", () {
+    testWidgets('Turn buttons player 1 smoke test', (WidgetTester tester) async {
+      // Build our app and trigger a frame.
+      await tester.pumpWidget(MyApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+      // Two counter buttons with text
+      expect(find.text('00:00:30:000'), findsNWidgets(2));
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+      // Tap the player1TurnBtn
+      await tester.tap(find.byKey(Key("player1TurnBtn")));
+      await tester.pump(Duration(seconds: 1));
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+      // Tap the player2TurnBtn
+      expect(find.text('00:00:30:000'), findsOneWidget);
+
+      await tester.tap(find.byKey(Key("player1TurnBtn")));
+      await tester.pump(Duration(seconds: 1));
+
+      expect(find.text('00:00:30:000'), findsNothing);
+    });
   });
 }
