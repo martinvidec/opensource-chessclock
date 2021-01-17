@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:chessclock/ChessGame.dart';
+import 'package:chessclock/GameStats.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
@@ -23,47 +25,39 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   static Duration _duration = Duration(seconds: 30);
 
-  Stopwatch _stopwatchPlayer1 = Stopwatch();
-  String _stopwatchPlayer1Text = _formatDuration(_duration);
-  Stopwatch _stopwatchPlayer2 = Stopwatch();
-  String _stopwatchPlayer2Text = _formatDuration(_duration);
-  bool _gameRunning = false;
+  ChessGame _chessGame;
   Timer _periodic;
-  String _elapsedTimeText = "00:00:00.000";
-  String _infoPlayer1Text = "";
-  String _infoPlayer2Text = "";
-  int _result = 0;
+  String _stopwatchPlayer1Text;
+  String _stopwatchPlayer2Text;
+  String _elapsedTimeText;
+  String _infoPlayer1Text;
+  String _infoPlayer2Text;
 
   @override
   void initState() {
     super.initState();
+
+    _initMembers();
+
     _periodic = Timer.periodic(Duration(milliseconds: 1), (Timer t) {
-      if (_gameRunning) {
-        _result = _checkEndGameCondition();
-        Duration elapsedPlayer1 = _stopwatchPlayer1.elapsed;
-        Duration elapsedPlayer2 = _stopwatchPlayer2.elapsed;
+      if (_chessGame.isRunning()) {
+        _chessGame.checkEndGameCondition();
 
-        Duration remainingPlayer1 = _duration - elapsedPlayer1;
-        if(remainingPlayer1.isNegative) {
-          elapsedPlayer1 = elapsedPlayer1 + remainingPlayer1;
-          remainingPlayer1 = Duration.zero;
-        }
+        GameStats gameStats = _chessGame.getGameStats();
 
-        Duration remainingPlayer2 = _duration - elapsedPlayer2;
-        if(remainingPlayer2.isNegative) {
-          elapsedPlayer2 = elapsedPlayer2 + remainingPlayer2;
-          remainingPlayer2 = Duration.zero;
-        }
-        
-        _elapsedTimeText = _formatDuration(elapsedPlayer1 + elapsedPlayer2);
-        _stopwatchPlayer1Text = _formatDuration(remainingPlayer1);
-        _stopwatchPlayer2Text = _formatDuration(remainingPlayer2);
+        _elapsedTimeText = _formatDuration(
+            gameStats.elapsedPlayer1 +
+                gameStats.elapsedPlayer2);
+        _stopwatchPlayer1Text =
+            _formatDuration(gameStats.remainingPlayer1);
+        _stopwatchPlayer2Text =
+            _formatDuration(gameStats.remainingPlayer2);
 
         setState(() {
-          if (_result == 1) {
+          if (_chessGame.getResult() == 1) {
             _infoPlayer1Text = "YOU WON";
             _infoPlayer2Text = "YOU LOST";
-          } else if (_result == 2) {
+          } else if (_chessGame.getResult() == 2) {
             _infoPlayer1Text = "YOU LOST";
             _infoPlayer2Text = "YOU WON";
           }
@@ -72,69 +66,39 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void _initMembers() {
+    _chessGame = ChessGame(_duration);
+    _stopwatchPlayer1Text = _formatDuration(_duration);
+    _stopwatchPlayer2Text = _formatDuration(_duration);
+    _elapsedTimeText = _formatDuration(Duration.zero);
+    _infoPlayer1Text = "";
+    _infoPlayer2Text = "";
+  }
+
+  @override
+  void dispose() {
+    _periodic.cancel();
+    super.dispose();
+  }
+
   void _player1TimerClicked() {
-    setState(() {
-      if (_gameRunning &&
-          _stopwatchPlayer1.isRunning &&
-          !_stopwatchPlayer2.isRunning) {
-        _stopwatchPlayer1.stop();
-        _stopwatchPlayer2.start();
-      } else if (!_gameRunning && _result == 0) {
-        _stopwatchPlayer1.start();
-        _gameRunning = true;
-      } else if (!_gameRunning && _result != 0){
-        _resetGame();
-      }
-    });
+    if(!_chessGame.isOver()) {
+      _chessGame.makeTurn(1);
+    } else {
+      setState(() {
+        _initMembers();
+      });
+    }
   }
 
   void _player2TimerClicked() {
-    setState(() {
-      if (_gameRunning &&
-          _stopwatchPlayer2.isRunning &&
-          !_stopwatchPlayer1.isRunning) {
-        _stopwatchPlayer2.stop();
-        _stopwatchPlayer1.start();
-      } else if (!_gameRunning && _result == 0) {
-        _stopwatchPlayer2.start();
-        _gameRunning = true;
-      } else if (!_gameRunning && _result != 0){
-        _resetGame();
-      }
-    });
-  }
-
-  // TODO doc
-  int _checkEndGameCondition() {
-    // End condition
-    if (_stopwatchPlayer1.elapsed.compareTo(_duration) > 0) {
-      _stopStopwatches();
-      return 2;
-    } else if (_stopwatchPlayer2.elapsed.compareTo(_duration) > 0) {
-      _stopStopwatches();
-      return 1;
+    if(!_chessGame.isOver()) {
+      _chessGame.makeTurn(2);
+    } else {
+      setState(() {
+        _initMembers();
+      });
     }
-    return 0;
-  }
-
-  void _stopStopwatches() {
-    _stopwatchPlayer1.stop();
-    _stopwatchPlayer2.stop();
-    _gameRunning = false;
-  }
-
-  void _resetGame(){
-    setState((){
-      _gameRunning = false;
-      _stopwatchPlayer1.reset();
-      _stopwatchPlayer2.reset();
-      _stopwatchPlayer1Text = _formatDuration(_duration);
-      _stopwatchPlayer2Text = _formatDuration(_duration);
-      _elapsedTimeText = "00:00:00.000";
-      _infoPlayer1Text = "";
-      _infoPlayer2Text = "";
-      _result = 0;
-    });
   }
 
   static String _formatDuration(Duration duration) {
@@ -183,6 +147,7 @@ class _MyHomePageState extends State<MyHomePage> {
               child: RotatedBox(
                 quarterTurns: 2,
                 child: OutlineButton(
+                  key: Key("player2TurnBtn"),
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Text(
@@ -220,6 +185,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             Spacer(),
             OutlineButton(
+              key: Key("player1TurnBtn"),
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Text(
