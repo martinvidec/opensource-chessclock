@@ -33,7 +33,7 @@ class ChessGame {
     return _chessclock.isRunning();
   }
 
-  void checkEndGameCondition() {
+  void checkGameOverCondition() {
     // End condition
     if (_chessclock.isRunning()) {
       ClockStats clockStats = _chessclock.getStats();
@@ -47,7 +47,7 @@ class ChessGame {
     }
   }
 
-  GameStats getGameStats() {
+  GameStats computeGameStats() {
     GameStats gameStats = GameStats(_chessclock.getStats());
 
     // sanitize the clock values because due to rendering by the timer the clocks may be off by some milliseconds

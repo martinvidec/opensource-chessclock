@@ -26,7 +26,7 @@ class _MyHomePageState extends State<MyHomePage> {
   static Duration _duration = Duration(seconds: 30);
 
   ChessGame _chessGame;
-  Timer _periodic;
+  Timer _timer;
   String _stopwatchPlayer1Text;
   String _stopwatchPlayer2Text;
   String _elapsedTimeText;
@@ -38,12 +38,24 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
 
     _initMembers();
+    _initTimer();
+  }
 
-    _periodic = Timer.periodic(Duration(milliseconds: 1), (Timer t) {
+  void _initMembers() {
+    _chessGame = ChessGame(_duration);
+    _stopwatchPlayer1Text = _formatDuration(_duration);
+    _stopwatchPlayer2Text = _formatDuration(_duration);
+    _elapsedTimeText = _formatDuration(Duration.zero);
+    _infoPlayer1Text = "";
+    _infoPlayer2Text = "";
+  }
+  
+  void _initTimer() {
+    _timer = Timer.periodic(Duration(milliseconds: 1), (Timer t) {
       if (_chessGame.isRunning()) {
-        _chessGame.checkEndGameCondition();
+        _chessGame.checkGameOverCondition();
 
-        GameStats gameStats = _chessGame.getGameStats();
+        GameStats gameStats = _chessGame.computeGameStats();
 
         _elapsedTimeText = _formatDuration(
             gameStats.elapsedPlayer1 +
@@ -66,18 +78,9 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  void _initMembers() {
-    _chessGame = ChessGame(_duration);
-    _stopwatchPlayer1Text = _formatDuration(_duration);
-    _stopwatchPlayer2Text = _formatDuration(_duration);
-    _elapsedTimeText = _formatDuration(Duration.zero);
-    _infoPlayer1Text = "";
-    _infoPlayer2Text = "";
-  }
-
   @override
   void dispose() {
-    _periodic.cancel();
+    _timer.cancel();
     super.dispose();
   }
 
