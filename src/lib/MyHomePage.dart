@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:chessclock/AppColorScheme.dart';
 import 'package:chessclock/ChessGame.dart';
 import 'package:chessclock/GameStats.dart';
 import 'package:flutter/material.dart';
@@ -52,7 +53,8 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _initTimer() {
-    _timer = Timer.periodic(Duration(milliseconds: (_fps * 1000).floor()), (Timer t) {
+    _timer = Timer.periodic(Duration(milliseconds: (_fps * 1000).floor()),
+        (Timer t) {
       if (_chessGame.isRunning()) {
         _chessGame.checkGameOverCondition();
 
@@ -123,82 +125,90 @@ class _MyHomePageState extends State<MyHomePage> {
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Spacer(),
-            Container(
-              child: RotatedBox(
-                quarterTurns: 2,
-                child: OutlineButton(
-                  key: Key("player2TurnBtn"),
+      body: Stack( // Stack added in preparation for animations - wip
+        children: <Widget>[
+          Center(
+            // Center is a layout widget. It takes a single child and positions it
+            // in the middle of the parent.
+            child: Column(
+              // Column is also a layout widget. It takes a list of children and
+              // arranges them vertically. By default, it sizes itself to fit its
+              // children horizontally, and tries to be as tall as its parent.
+              //
+              // Invoke "debug painting" (press "p" in the console, choose the
+              // "Toggle Debug Paint" action from the Flutter Inspector in Android
+              // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
+              // to see the wireframe for each widget.
+              //
+              // Column has various properties to control how it sizes itself and
+              // how it positions its children. Here we use mainAxisAlignment to
+              // center the children vertically; the main axis here is the vertical
+              // axis because Columns are vertical (the cross axis would be
+              // horizontal).
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Spacer(),
+                Container(
+                  child: RotatedBox(
+                    quarterTurns: 2,
+                    child: FlatButton(
+                      shape: StadiumBorder(),
+                      color: AppColorScheme.buttonBackgroundColor,
+                      key: Key("player2TurnBtn"),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          '$_stopwatchPlayer2Text',
+                          style: Theme.of(context).textTheme.display1,
+                        ),
+                      ),
+                      onPressed: _player2TimerClicked,
+                    ),
+                  ),
+                ),
+                Spacer(),
+                RotatedBox(
+                  quarterTurns: 2,
+                  child: Text(
+                    '$_infoPlayer2Text',
+                    style: Theme.of(context).textTheme.display1,
+                  ),
+                ),
+                RotatedBox(
+                  quarterTurns: 2,
+                  child: Text(
+                    '$_elapsedTimeText',
+                    style: Theme.of(context).textTheme.display2,
+                  ),
+                ),
+                Spacer(),
+                Text(
+                  '$_elapsedTimeText',
+                  style: Theme.of(context).textTheme.display2,
+                ),
+                Text(
+                  '$_infoPlayer1Text',
+                  style: Theme.of(context).textTheme.display1,
+                ),
+                Spacer(),
+                FlatButton(
+                  shape: StadiumBorder(),
+                  color: AppColorScheme.buttonBackgroundColor,
+                  key: Key("player1TurnBtn"),
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Text(
-                      '$_stopwatchPlayer2Text',
+                      '$_stopwatchPlayer1Text',
                       style: Theme.of(context).textTheme.display1,
                     ),
                   ),
-                  onPressed: _player2TimerClicked,
+                  onPressed: _player1TimerClicked,
                 ),
-              ),
+                Spacer(),
+              ],
             ),
-            Spacer(),
-            RotatedBox(
-              quarterTurns: 2,
-              child: Text(
-                '$_infoPlayer2Text',
-                style: Theme.of(context).textTheme.display1,
-              ),
-            ),
-            RotatedBox(
-              quarterTurns: 2,
-              child: Text(
-                '$_elapsedTimeText',
-                style: Theme.of(context).textTheme.display2,
-              ),
-            ),
-            Spacer(),
-            Text(
-              '$_elapsedTimeText',
-              style: Theme.of(context).textTheme.display2,
-            ),
-            Text(
-              '$_infoPlayer1Text',
-              style: Theme.of(context).textTheme.display1,
-            ),
-            Spacer(),
-            OutlineButton(
-              key: Key("player1TurnBtn"),
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  '$_stopwatchPlayer1Text',
-                  style: Theme.of(context).textTheme.display1,
-                ),
-              ),
-              onPressed: _player1TimerClicked,
-            ),
-            Spacer(),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
