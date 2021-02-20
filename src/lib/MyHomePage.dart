@@ -159,7 +159,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         padding: const EdgeInsets.all(8.0),
                         child: Text(
                           '$_stopwatchPlayer2Text',
-                          style: Theme.of(context).textTheme.display1,
+                          style: Theme.of(context).textTheme.headline4,
                         ),
                       ),
                       onPressed: _player2TimerClicked,
@@ -171,24 +171,24 @@ class _MyHomePageState extends State<MyHomePage> {
                   quarterTurns: 2,
                   child: Text(
                     '$_infoPlayer2Text',
-                    style: Theme.of(context).textTheme.display1,
+                    style: Theme.of(context).textTheme.headline4,
                   ),
                 ),
                 RotatedBox(
                   quarterTurns: 2,
                   child: Text(
                     '$_elapsedTimeText',
-                    style: Theme.of(context).textTheme.display2,
+                    style: Theme.of(context).textTheme.headline3,
                   ),
                 ),
                 Spacer(),
                 Text(
                   '$_elapsedTimeText',
-                  style: Theme.of(context).textTheme.display2,
+                  style: Theme.of(context).textTheme.headline3,
                 ),
                 Text(
                   '$_infoPlayer1Text',
-                  style: Theme.of(context).textTheme.display1,
+                  style: Theme.of(context).textTheme.headline4,
                 ),
                 Spacer(),
                 FlatButton(
@@ -199,7 +199,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     padding: const EdgeInsets.all(8.0),
                     child: Text(
                       '$_stopwatchPlayer1Text',
-                      style: Theme.of(context).textTheme.display1,
+                      style: Theme.of(context).textTheme.headline4,
                     ),
                   ),
                   onPressed: _player1TimerClicked,
