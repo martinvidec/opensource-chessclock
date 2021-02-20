@@ -84,19 +84,9 @@ class _MyHomePageState extends State<MyHomePage> {
     super.dispose();
   }
 
-  void _player1TimerClicked() {
+  void _playerTimerClicked(int player) {
     if (!_chessGame.isOver()) {
-      _chessGame.makeTurn(1);
-    } else {
-      setState(() {
-        _initMembers();
-      });
-    }
-  }
-
-  void _player2TimerClicked() {
-    if (!_chessGame.isOver()) {
-      _chessGame.makeTurn(2);
+      _chessGame.makeTurn(player);
     } else {
       setState(() {
         _initMembers();
@@ -162,7 +152,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           style: Theme.of(context).textTheme.headline4,
                         ),
                       ),
-                      onPressed: _player2TimerClicked,
+                      onPressed: (){_playerTimerClicked(2);},
                     ),
                   ),
                 ),
@@ -202,7 +192,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       style: Theme.of(context).textTheme.headline4,
                     ),
                   ),
-                  onPressed: _player1TimerClicked,
+                  onPressed: (){_playerTimerClicked(1);},
                 ),
                 Spacer(),
               ],
