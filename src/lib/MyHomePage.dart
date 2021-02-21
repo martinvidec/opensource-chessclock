@@ -35,41 +35,21 @@ class _MyHomePageState extends State<MyHomePage> {
   String _stopwatchPlayer2Text;
   String _elapsedTimeText;
   TextEditingController _controller = TextEditingController();
+  bool _showClearButton = false;
 
   @override
   void initState() {
     super.initState();
 
+    _controller.addListener(() {
+      setState(() {
+        _showClearButton = _controller.text.length > 0;
+      });
+    });
+
     _loadPreferences();
     _initMembers();
     _initTimer();
-  }
-
-  void _savePreferences() async {
-    if (_controller.text.isNotEmpty && int.tryParse(_controller.text) != null) {
-      int value = int.tryParse(_controller.text);
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      prefs.setInt(_durationKey, value);
-      setState(() {
-        _duration = Duration(seconds: value);
-        if (!_chessGame.isRunning()) {
-          _initMembers();
-        }
-      });
-    }
-  }
-
-  void _loadPreferences() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    int secs = prefs.getInt(_durationKey);
-    print('duration in sec $secs');
-    if (secs != null) {
-      _duration = Duration(seconds: secs);
-    }
-    _controller.text = _duration.inSeconds.toString();
-    setState(() {
-      _initMembers();
-    });
   }
 
   void _initMembers() {
@@ -95,6 +75,33 @@ class _MyHomePageState extends State<MyHomePage> {
         setState(() {});
       }
     });
+  }
+
+  void _loadPreferences() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    int secs = prefs.getInt(_durationKey);
+    print('duration in sec $secs');
+    if (secs != null) {
+      _duration = Duration(seconds: secs);
+    }
+    _controller.text = _duration.inSeconds.toString();
+    setState(() {
+      _initMembers();
+    });
+  }
+
+  void _savePreferences() async {
+    if (_controller.text.isNotEmpty && int.tryParse(_controller.text) != null) {
+      int value = int.tryParse(_controller.text);
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.setInt(_durationKey, value);
+      setState(() {
+        _duration = Duration(seconds: value);
+        if (!_chessGame.isRunning()) {
+          _initMembers();
+        }
+      });
+    }
   }
 
   @override
@@ -140,6 +147,15 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  Widget _getClearButton() {
+    if (!_showClearButton) {
+      return null;
+    }
+
+    return IconButton(
+        onPressed: () => _controller.clear(), icon: Icon(Icons.clear));
+  }
+
   static String _formatDuration(Duration duration) {
     return '${duration.inHours.toString().padLeft(2, "0")}:' +
         '${duration.inMinutes.remainder(60).toString().padLeft(2, "0")}:' +
@@ -161,8 +177,8 @@ class _MyHomePageState extends State<MyHomePage> {
         padding: EdgeInsets.zero,
         children: <Widget>[
           DrawerHeader(
-            child: Text("oscc",
-                style: TextStyle(color: AppColorScheme.drawerHeaderTextColor)),
+            child: Text("OSCC Settings",
+                style: Theme.of(context).textTheme.headline4),
             decoration: BoxDecoration(
                 gradient:
                     LinearGradient(colors: AppColorScheme.drawerHeaderColor)),
@@ -173,14 +189,19 @@ class _MyHomePageState extends State<MyHomePage> {
               child: TextField(
                 key: Key("durationsInSecs"),
                 controller: _controller,
-                decoration: InputDecoration(hintText: 'duration in seconds'),
+                decoration: InputDecoration(
+                    hintText: 'duration in seconds',
+                    suffixIcon: _getClearButton()),
               ),
             )
           ])),
           ListTile(
             title: Row(
               children: [
-                RaisedButton(
+                FlatButton(
+                  shape: StadiumBorder(),
+                  color: AppColorScheme.buttonBackgroundColor,
+                  key: Key("saveBtn"),
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Text('Save',
