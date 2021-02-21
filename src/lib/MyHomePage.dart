@@ -176,42 +176,48 @@ class _MyHomePageState extends State<MyHomePage> {
           child: ListView(
         padding: EdgeInsets.zero,
         children: <Widget>[
-          DrawerHeader(
-            child: Text("OSCC Settings",
-                style: Theme.of(context).textTheme.headline4),
+          Container(
             decoration: BoxDecoration(
                 gradient:
                     LinearGradient(colors: AppColorScheme.drawerHeaderColor)),
+            child: DrawerHeader(
+              child: Text("OSCC Settings",
+                  style: Theme.of(context).textTheme.headline4),
+            ),
           ),
-          ListTile(
-              title: Row(children: [
-            Expanded(
-              child: TextField(
-                key: Key("durationsInSecs"),
-                controller: _controller,
-                decoration: InputDecoration(
-                    hintText: 'duration in seconds',
-                    suffixIcon: _getClearButton()),
-              ),
-            )
-          ])),
-          ListTile(
+          Container(
+            child: ListTile(
+                title: Row(children: [
+              Expanded(
+                child: TextField(
+                  key: Key("durationsInSecs"),
+                  controller: _controller,
+                  decoration: InputDecoration(
+                      hintText: 'duration in seconds',
+                      suffixIcon: _getClearButton()),
+                ),
+              )
+            ])),
+          ),
+          Container(
+              child: ListTile(
             title: Row(
               children: [
-                FlatButton(
+                Expanded(
+                    child: FlatButton(
                   shape: StadiumBorder(),
                   color: AppColorScheme.buttonBackgroundColor,
                   key: Key("saveBtn"),
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Text('Save',
-                        style: Theme.of(context).textTheme.headline4),
+                        style: Theme.of(context).textTheme.headline6),
                   ),
                   onPressed: _savePreferences,
-                )
+                ))
               ],
             ),
-          )
+          ))
         ],
       )),
       appBar: AppBar(
@@ -267,6 +273,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 Container(
                   child: RotatedBox(quarterTurns: 2, child: _iconForPlayer(2)),
                 ),
+                Spacer(),
                 RotatedBox(
                   quarterTurns: 2,
                   child: Text(
@@ -279,6 +286,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   '$_elapsedTimeText',
                   style: Theme.of(context).textTheme.headline3,
                 ),
+                Spacer(),
                 Container(child: _iconForPlayer(1)),
                 Spacer(),
                 FlatButton(
