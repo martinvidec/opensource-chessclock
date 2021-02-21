@@ -161,10 +161,11 @@ class _MyHomePageState extends State<MyHomePage> {
         padding: EdgeInsets.zero,
         children: <Widget>[
           DrawerHeader(
-            child: Text("oscc", style: TextStyle(color: Colors.white)),
+            child: Text("oscc",
+                style: TextStyle(color: AppColorScheme.drawerHeaderTextColor)),
             decoration: BoxDecoration(
-                gradient: LinearGradient(
-                    colors: List.of([Colors.blue, Colors.lightBlue]))),
+                gradient:
+                    LinearGradient(colors: AppColorScheme.drawerHeaderColor)),
           ),
           ListTile(
               title: Row(children: [
