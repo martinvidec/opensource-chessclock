@@ -4,8 +4,13 @@ import 'package:chessclock/GameStats.dart';
 
 class ChessGame {
   int _result;
+  int _currentPlayer = 0;
   Duration _duration;
   ChessClock _chessclock;
+
+  int get currentPlayer => _currentPlayer;
+
+  int get result => _result;
 
   ChessGame(duration) {
     _chessclock = ChessClock();
@@ -17,16 +22,15 @@ class ChessGame {
     if (!_chessclock.isRunning()) {
       if(_result == 0) {
         _chessclock.start(player);
+        _currentPlayer = player;
       } else {
         _chessclock.reset();
+        _currentPlayer = 0;
       }
     } else {
       _chessclock.toggle(player);
+      _currentPlayer = player == 1 ? 2 : 1;
     }
-  }
-
-  int getResult() {
-    return _result;
   }
 
   bool isRunning() {
@@ -40,9 +44,11 @@ class ChessGame {
       if (clockStats.elapsedPlayer1.compareTo(_duration) > 0) {
         _chessclock.stop();
         _result = 2;
+        _currentPlayer = 0;
       } else if (clockStats.elapsedPlayer2.compareTo(_duration) > 0) {
         _chessclock.stop();
         _result = 1;
+        _currentPlayer = 0;
       }
     }
   }

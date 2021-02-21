@@ -4,6 +4,7 @@ import 'package:chessclock/ChessGame.dart';
 import 'package:chessclock/GameStats.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
@@ -26,21 +27,49 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   static Duration _duration = Duration(seconds: 30);
   static double _fps = 1 / 60;
+  static String _durationKey = 'duration';
 
   ChessGame _chessGame;
   Timer _timer;
   String _stopwatchPlayer1Text;
   String _stopwatchPlayer2Text;
   String _elapsedTimeText;
-  String _infoPlayer1Text;
-  String _infoPlayer2Text;
+  TextEditingController _controller = TextEditingController();
 
   @override
   void initState() {
     super.initState();
 
+    _loadPreferences();
     _initMembers();
     _initTimer();
+  }
+
+  void _savePreferences() async {
+    if (_controller.text.isNotEmpty && int.tryParse(_controller.text) != null) {
+      int value = int.tryParse(_controller.text);
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.setInt(_durationKey, value);
+      setState(() {
+        _duration = Duration(seconds: value);
+        if (!_chessGame.isRunning()) {
+          _initMembers();
+        }
+      });
+    }
+  }
+
+  void _loadPreferences() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    int secs = prefs.getInt(_durationKey);
+    print('duration in sec $secs');
+    if (secs != null) {
+      _duration = Duration(seconds: secs);
+    }
+    _controller.text = _duration.inSeconds.toString();
+    setState(() {
+      _initMembers();
+    });
   }
 
   void _initMembers() {
@@ -48,8 +77,6 @@ class _MyHomePageState extends State<MyHomePage> {
     _stopwatchPlayer1Text = _formatDuration(_duration);
     _stopwatchPlayer2Text = _formatDuration(_duration);
     _elapsedTimeText = _formatDuration(Duration.zero);
-    _infoPlayer1Text = "";
-    _infoPlayer2Text = "";
   }
 
   void _initTimer() {
@@ -65,15 +92,7 @@ class _MyHomePageState extends State<MyHomePage> {
         _stopwatchPlayer1Text = _formatDuration(gameStats.remainingPlayer1);
         _stopwatchPlayer2Text = _formatDuration(gameStats.remainingPlayer2);
 
-        setState(() {
-          if (_chessGame.getResult() == 1) {
-            _infoPlayer1Text = "YOU WON";
-            _infoPlayer2Text = "YOU LOST";
-          } else if (_chessGame.getResult() == 2) {
-            _infoPlayer1Text = "YOU LOST";
-            _infoPlayer2Text = "YOU WON";
-          }
-        });
+        setState(() {});
       }
     });
   }
@@ -94,6 +113,33 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  Widget _iconForPlayer(int player) {
+    if (_chessGame.isRunning() && _chessGame.currentPlayer == player) {
+      return Icon(
+        Icons.alarm,
+        size: 48,
+      );
+    }
+    if (_chessGame.isOver() && _chessGame.result == player) {
+      return Icon(
+        Icons.emoji_events,
+        color: AppColorScheme.wonColor,
+        size: 48,
+      );
+    }
+    if (_chessGame.isOver() && _chessGame.result != player) {
+      return Icon(
+        Icons.emoji_flags,
+        color: AppColorScheme.lostColor,
+        size: 48,
+      );
+    }
+    return SizedBox(
+      height: 48,
+      width: 48,
+    );
+  }
+
   static String _formatDuration(Duration duration) {
     return '${duration.inHours.toString().padLeft(2, "0")}:' +
         '${duration.inMinutes.remainder(60).toString().padLeft(2, "0")}:' +
@@ -110,12 +156,49 @@ class _MyHomePageState extends State<MyHomePage> {
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
     return Scaffold(
+      drawer: Drawer(
+          child: ListView(
+        padding: EdgeInsets.zero,
+        children: <Widget>[
+          DrawerHeader(
+            child: Text("oscc", style: TextStyle(color: Colors.white)),
+            decoration: BoxDecoration(
+                gradient: LinearGradient(
+                    colors: List.of([Colors.blue, Colors.lightBlue]))),
+          ),
+          ListTile(
+              title: Row(children: [
+            Expanded(
+              child: TextField(
+                key: Key("durationsInSecs"),
+                controller: _controller,
+                decoration: InputDecoration(hintText: 'duration in seconds'),
+              ),
+            )
+          ])),
+          ListTile(
+            title: Row(
+              children: [
+                RaisedButton(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text('Save',
+                        style: Theme.of(context).textTheme.headline4),
+                  ),
+                  onPressed: _savePreferences,
+                )
+              ],
+            ),
+          )
+        ],
+      )),
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      body: Stack( // Stack added in preparation for animations - wip
+      body: Stack(
+        // Stack added in preparation for animations - wip
         children: <Widget>[
           Center(
             // Center is a layout widget. It takes a single child and positions it
@@ -152,17 +235,15 @@ class _MyHomePageState extends State<MyHomePage> {
                           style: Theme.of(context).textTheme.headline4,
                         ),
                       ),
-                      onPressed: (){_playerTimerClicked(2);},
+                      onPressed: () {
+                        _playerTimerClicked(2);
+                      },
                     ),
                   ),
                 ),
                 Spacer(),
-                RotatedBox(
-                  quarterTurns: 2,
-                  child: Text(
-                    '$_infoPlayer2Text',
-                    style: Theme.of(context).textTheme.headline4,
-                  ),
+                Container(
+                  child: RotatedBox(quarterTurns: 2, child: _iconForPlayer(2)),
                 ),
                 RotatedBox(
                   quarterTurns: 2,
@@ -176,10 +257,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   '$_elapsedTimeText',
                   style: Theme.of(context).textTheme.headline3,
                 ),
-                Text(
-                  '$_infoPlayer1Text',
-                  style: Theme.of(context).textTheme.headline4,
-                ),
+                Container(child: _iconForPlayer(1)),
                 Spacer(),
                 FlatButton(
                   shape: StadiumBorder(),
@@ -192,7 +270,9 @@ class _MyHomePageState extends State<MyHomePage> {
                       style: Theme.of(context).textTheme.headline4,
                     ),
                   ),
-                  onPressed: (){_playerTimerClicked(1);},
+                  onPressed: () {
+                    _playerTimerClicked(1);
+                  },
                 ),
                 Spacer(),
               ],
